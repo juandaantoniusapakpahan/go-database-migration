@@ -30,7 +30,7 @@ func (repository *CategoryRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, 
 }
 
 func (repository *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, category domain.Category) domain.Category {
-	queryScript := "update category set name = ?  where id = ?"
+	queryScript := "update category set name = ? where id = ?"
 	_, err := tx.ExecContext(ctx, queryScript, category.Name, category.Id)
 	helper.ErrorHandle(err)
 	return category
@@ -41,7 +41,7 @@ func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.
 	row, err := tx.QueryContext(ctx, queryScript, id)
 	helper.ErrorHandle(err)
 	cty := domain.Category{}
-
+	defer row.Close()
 	if row.Next() {
 		err := row.Scan(&cty.Id, &cty.Name)
 		helper.ErrorHandle(err)
@@ -62,6 +62,7 @@ func (repository *CategoryRepositoryImpl) FindAll(ctx context.Context, tx *sql.T
 	rows, err := tx.QueryContext(ctx, queryScript)
 	helper.ErrorHandle(err)
 	categories := []domain.Category{}
+	defer rows.Close()
 	for rows.Next() {
 		category := domain.Category{}
 		err = rows.Scan(&category.Id, &category.Name)
