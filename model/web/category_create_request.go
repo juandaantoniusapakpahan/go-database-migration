@@ -1,6 +1,5 @@
 package web
 
 type CategoryCreateRequest struct {
-	Id   int
-	Name string
+	Name string `validate:"required,min=3,max=100"`
 }

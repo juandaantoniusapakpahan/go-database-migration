@@ -32,7 +32,7 @@ func (repository *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx
 	return category
 }
 
-func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, id string) (domain.Category, error) {
+func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, id int) (domain.Category, error) {
 	queryScript := "SELECT id, name from category where id = ?"
 	row, err := tx.QueryContext(ctx, queryScript, id)
 	helper.ErrorHandle(err)
