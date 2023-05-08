@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/juandaantoniusapakpahan/go-restful-api/helper"
 	"github.com/juandaantoniusapakpahan/go-restful-api/model/domain"
 	"github.com/juandaantoniusapakpahan/go-restful-api/model/web"
@@ -13,9 +14,19 @@ import (
 type CategoryServiceImpl struct {
 	Repository repository.CategoryRepository
 	DB         *sql.DB
+	Validate   *validator.Validate
+}
+
+func NewCategoryServie(respotiry repository.CategoryRepository, db *sql.DB, validate validator.Validate) CategoryService {
+	return &CategoryServiceImpl{
+		Repository: respotiry,
+		DB:         db,
+		Validate:   &validate,
+	}
 }
 
 func (service *CategoryServiceImpl) Create(ctx context.Context, category web.CategoryCreateRequest) web.CategoryResponse {
+	err := service.Validate.Struct(category)
 	tx, err := service.DB.Begin()
 	helper.ErrorHandle(err)
 	defer helper.CommitRollBack(tx)
@@ -29,6 +40,8 @@ func (service *CategoryServiceImpl) Create(ctx context.Context, category web.Cat
 }
 
 func (service *CategoryServiceImpl) Update(ctx context.Context, category web.CategoryUpdateRequest) web.CategoryResponse {
+	err := service.Validate.Struct(category)
+
 	tx, err := service.DB.Begin()
 	helper.ErrorHandle(err)
 	defer helper.CommitRollBack(tx)
@@ -52,8 +65,7 @@ func (service *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) 
 	domainCategory, err := service.Repository.FindById(ctx, tx, categoryId)
 	helper.ErrorHandle(err)
 
-	err = service.Repository.Delete(ctx, tx, domainCategory)
-	helper.ErrorHandle(err)
+	service.Repository.Delete(ctx, tx, domainCategory)
 }
 
 func (service *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) web.CategoryResponse {

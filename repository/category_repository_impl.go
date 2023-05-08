@@ -12,6 +12,10 @@ import (
 type CategoryRepositoryImpl struct {
 }
 
+func NewCategoryRepository() CategoryRepository {
+	return &CategoryRepositoryImpl{}
+}
+
 func (repository *CategoryRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, category domain.Category) domain.Category {
 	queryScript := "insert into category(name) values(?)"
 	resutl, err := tx.ExecContext(ctx, queryScript, category.Name)
@@ -51,7 +55,6 @@ func (repository *CategoryRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx
 	queryScript := "DELETE FROM  category WHERE id = ?"
 	_, err := tx.ExecContext(ctx, queryScript, category.Id)
 	helper.ErrorHandle(err)
-
 }
 
 func (repository *CategoryRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []domain.Category {
