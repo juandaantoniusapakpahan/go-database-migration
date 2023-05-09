@@ -40,14 +40,16 @@ func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.
 	queryScript := "SELECT id, name from category where id = ?"
 	row, err := tx.QueryContext(ctx, queryScript, id)
 	helper.ErrorHandle(err)
-	cty := domain.Category{}
+
 	defer row.Close()
+
 	if row.Next() {
+		cty := domain.Category{}
 		err := row.Scan(&cty.Id, &cty.Name)
 		helper.ErrorHandle(err)
 		return cty, nil
 	} else {
-		return cty, errors.New("category is not found!")
+		return domain.Category{}, errors.New("category is not found!")
 	}
 }
 
@@ -61,13 +63,16 @@ func (repository *CategoryRepositoryImpl) FindAll(ctx context.Context, tx *sql.T
 	queryScript := "SELECT id, name FROM category"
 	rows, err := tx.QueryContext(ctx, queryScript)
 	helper.ErrorHandle(err)
-	categories := []domain.Category{}
 	defer rows.Close()
+
+	categories := []domain.Category{}
+
 	for rows.Next() {
 		category := domain.Category{}
 		err = rows.Scan(&category.Id, &category.Name)
 		categories = append(categories, category)
 	}
+
 	return categories
 }
 

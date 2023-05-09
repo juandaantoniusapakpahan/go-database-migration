@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 
@@ -12,23 +11,23 @@ import (
 )
 
 type CategoryControllerImpl struct {
-	Service services.CategoryService
+	CategoryService services.CategoryService
 }
 
 func NewCategoryController(categoryService services.CategoryService) CategoryController {
 	return &CategoryControllerImpl{
-		Service: categoryService,
+		CategoryService: categoryService,
 	}
 }
 
-func (controller *CategoryControllerImpl) Create(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (controller *CategoryControllerImpl) Create(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	categoryCreateRequest := web.CategoryCreateRequest{}
 	helper.RequestDecode(r, &categoryCreateRequest)
 
-	result := controller.Service.Create(context.Background(), categoryCreateRequest)
+	result := controller.CategoryService.Create(r.Context(), categoryCreateRequest)
 
 	response := web.Response{
-		Code:   200,
+		Code:   201,
 		Status: "OK",
 		Data:   result,
 	}
@@ -45,15 +44,15 @@ func (controller *CategoryControllerImpl) Update(w http.ResponseWriter, r *http.
 
 	categoryUpdateRequest.Id = categoryId
 
-	result := controller.Service.Update(context.Background(), categoryUpdateRequest)
+	result := controller.CategoryService.Update(r.Context(), categoryUpdateRequest)
 
-	responseData := web.Response{
+	response := web.Response{
 		Code:   200,
 		Status: "OK",
 		Data:   result,
 	}
 
-	helper.ResponseJson(w, responseData)
+	helper.ResponseJson(w, response)
 }
 
 func (controller *CategoryControllerImpl) Delete(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -61,7 +60,7 @@ func (controller *CategoryControllerImpl) Delete(w http.ResponseWriter, r *http.
 	categoryId, err := strconv.Atoi(param)
 	helper.ErrorHandle(err)
 
-	controller.Service.Delete(context.Background(), categoryId)
+	controller.CategoryService.Delete(r.Context(), categoryId)
 
 	responesWeb := web.Response{
 		Code:   200,
@@ -77,19 +76,19 @@ func (controller *CategoryControllerImpl) FindById(w http.ResponseWriter, r *htt
 	categoryId, err := strconv.Atoi(param)
 	helper.ErrorHandle(err)
 
-	category := controller.Service.FindById(context.Background(), categoryId)
+	result := controller.CategoryService.FindById(r.Context(), categoryId)
 
-	webReponse := web.Response{
+	response := web.Response{
 		Code:   200,
 		Status: "OK",
-		Data:   category,
+		Data:   result,
 	}
 
-	helper.ResponseJson(w, webReponse)
+	helper.ResponseJson(w, response)
 }
 
-func (controller *CategoryControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	resutl := controller.Service.FindAll(context.Background())
+func (controller *CategoryControllerImpl) FindAll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	resutl := controller.CategoryService.FindAll(r.Context())
 
 	webResponse := web.Response{
 		Code:   200,

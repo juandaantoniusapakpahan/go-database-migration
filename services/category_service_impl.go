@@ -12,21 +12,23 @@ import (
 )
 
 type CategoryServiceImpl struct {
-	Repository repository.CategoryRepository
-	DB         *sql.DB
-	Validate   *validator.Validate
+	CategoryRepository repository.CategoryRepository
+	DB                 *sql.DB
+	Validate           *validator.Validate
 }
 
-func NewCategoryServie(respotiry repository.CategoryRepository, db *sql.DB, validate validator.Validate) CategoryService {
+func NewCategoryServie(respotiry repository.CategoryRepository, db *sql.DB, validate *validator.Validate) CategoryService {
 	return &CategoryServiceImpl{
-		Repository: respotiry,
-		DB:         db,
-		Validate:   &validate,
+		CategoryRepository: respotiry,
+		DB:                 db,
+		Validate:           validate,
 	}
 }
 
 func (service *CategoryServiceImpl) Create(ctx context.Context, category web.CategoryCreateRequest) web.CategoryResponse {
 	err := service.Validate.Struct(category)
+	helper.ErrorHandle(err)
+
 	tx, err := service.DB.Begin()
 	helper.ErrorHandle(err)
 	defer helper.CommitRollBack(tx)
@@ -34,27 +36,26 @@ func (service *CategoryServiceImpl) Create(ctx context.Context, category web.Cat
 	domainCategory := domain.Category{
 		Name: category.Name,
 	}
-	result := service.Repository.Save(ctx, tx, domainCategory)
+	result := service.CategoryRepository.Save(ctx, tx, domainCategory)
 
 	return helper.CategoryToResponse(result)
 }
 
-func (service *CategoryServiceImpl) Update(ctx context.Context, category web.CategoryUpdateRequest) web.CategoryResponse {
-	err := service.Validate.Struct(category)
+func (service *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUpdateRequest) web.CategoryResponse {
+	err := service.Validate.Struct(request)
+	helper.ErrorHandle(err)
 
 	tx, err := service.DB.Begin()
 	helper.ErrorHandle(err)
 	defer helper.CommitRollBack(tx)
 
-	domainCategory, err := service.Repository.FindById(ctx, tx, category.Id)
+	domainCategory, err := service.CategoryRepository.FindById(ctx, tx, request.Id)
 
-	helper.ErrorHandle(err)
+	domainCategory.Name = request.Name
 
-	domainCategory.Name = category.Name
+	category := service.CategoryRepository.Update(ctx, tx, domainCategory)
 
-	domainCategoryResult := service.Repository.Update(ctx, tx, domainCategory)
-
-	return helper.CategoryToResponse(domainCategoryResult)
+	return helper.CategoryToResponse(category)
 }
 
 func (service *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) {
@@ -62,10 +63,10 @@ func (service *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) 
 	helper.ErrorHandle(err)
 	defer helper.CommitRollBack(tx)
 
-	domainCategory, err := service.Repository.FindById(ctx, tx, categoryId)
+	domainCategory, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
 	helper.ErrorHandle(err)
 
-	service.Repository.Delete(ctx, tx, domainCategory)
+	service.CategoryRepository.Delete(ctx, tx, domainCategory)
 }
 
 func (service *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) web.CategoryResponse {
@@ -73,8 +74,7 @@ func (service *CategoryServiceImpl) FindById(ctx context.Context, categoryId int
 	helper.ErrorHandle(err)
 	defer helper.CommitRollBack(tx)
 
-	domainCategory, err := service.Repository.FindById(ctx, tx, categoryId)
-	helper.ErrorHandle(err)
+	domainCategory, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
 
 	return helper.CategoryToResponse(domainCategory)
 }
@@ -84,7 +84,7 @@ func (service *CategoryServiceImpl) FindAll(ctx context.Context) []web.CategoryR
 	helper.ErrorHandle(err)
 	defer helper.CommitRollBack(tx)
 
-	categories := service.Repository.FindAll(ctx, tx)
+	categories := service.CategoryRepository.FindAll(ctx, tx)
 
 	return helper.CategoriesToResponses(categories)
 
