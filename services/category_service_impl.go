@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/juandaantoniusapakpahan/go-restful-api/exception"
 	"github.com/juandaantoniusapakpahan/go-restful-api/helper"
 	"github.com/juandaantoniusapakpahan/go-restful-api/model/domain"
 	"github.com/juandaantoniusapakpahan/go-restful-api/model/web"
@@ -17,75 +18,80 @@ type CategoryServiceImpl struct {
 	Validate           *validator.Validate
 }
 
-func NewCategoryServie(respotiry repository.CategoryRepository, db *sql.DB, validate *validator.Validate) CategoryService {
+func NewCategoryService(categoryRepository repository.CategoryRepository, DB *sql.DB, validate *validator.Validate) CategoryService {
 	return &CategoryServiceImpl{
-		CategoryRepository: respotiry,
-		DB:                 db,
+		CategoryRepository: categoryRepository,
+		DB:                 DB,
 		Validate:           validate,
 	}
 }
 
-func (service *CategoryServiceImpl) Create(ctx context.Context, category web.CategoryCreateRequest) web.CategoryResponse {
-	err := service.Validate.Struct(category)
-	helper.ErrorHandle(err)
-
+func (service *CategoryServiceImpl) Create(ctx context.Context, request web.CategoryCreateRequest) (_ web.CategoryResponse) {
+	// TODO: Implement
+	err := service.Validate.Struct(request)
+	helper.PanicIfError(err)
 	tx, err := service.DB.Begin()
-	helper.ErrorHandle(err)
-	defer helper.CommitRollBack(tx)
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollBack(tx)
 
-	domainCategory := domain.Category{
-		Name: category.Name,
+	category := domain.Category{
+		Name: request.Name,
 	}
-	result := service.CategoryRepository.Save(ctx, tx, domainCategory)
 
-	return helper.CategoryToResponse(result)
+	result := service.CategoryRepository.Save(ctx, tx, category)
+	return helper.ToCategoryResponse(result)
 }
 
-func (service *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUpdateRequest) web.CategoryResponse {
+func (service *CategoryServiceImpl) Update(ctx context.Context, request web.CategoryUpdateRequest) (_ web.CategoryResponse) {
+	// TODO: Implement
 	err := service.Validate.Struct(request)
-	helper.ErrorHandle(err)
-
+	helper.PanicIfError(err)
 	tx, err := service.DB.Begin()
-	helper.ErrorHandle(err)
-	defer helper.CommitRollBack(tx)
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollBack(tx)
 
-	domainCategory, err := service.CategoryRepository.FindById(ctx, tx, request.Id)
+	category, err := service.CategoryRepository.FindById(ctx, tx, request.Id)
+	panic(exception.NewNotFoundError(err.Error()))
 
-	domainCategory.Name = request.Name
+	category.Name = request.Name
 
-	category := service.CategoryRepository.Update(ctx, tx, domainCategory)
-
-	return helper.CategoryToResponse(category)
+	category = service.CategoryRepository.Update(ctx, tx, category)
+	return helper.ToCategoryResponse(category)
 }
 
 func (service *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) {
+	// TODO: Implement
 	tx, err := service.DB.Begin()
-	helper.ErrorHandle(err)
-	defer helper.CommitRollBack(tx)
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollBack(tx)
 
-	domainCategory, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
-	helper.ErrorHandle(err)
+	category, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
+	panic(exception.NewNotFoundError(err.Error()))
 
-	service.CategoryRepository.Delete(ctx, tx, domainCategory)
+	service.CategoryRepository.Delete(ctx, tx, category)
 }
 
-func (service *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) web.CategoryResponse {
+func (service *CategoryServiceImpl) FindById(ctx context.Context, categoryId int) (_ web.CategoryResponse) {
+	// TODO: Implement
 	tx, err := service.DB.Begin()
-	helper.ErrorHandle(err)
-	defer helper.CommitRollBack(tx)
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollBack(tx)
 
-	domainCategory, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
+	category, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
+	panic(exception.NewNotFoundError(err.Error()))
 
-	return helper.CategoryToResponse(domainCategory)
+	return helper.ToCategoryResponse(category)
 }
 
-func (service *CategoryServiceImpl) FindAll(ctx context.Context) []web.CategoryResponse {
+func (service *CategoryServiceImpl) FindAll(ctx context.Context) (_ []web.CategoryResponse) {
+	// TODO: Implement
 	tx, err := service.DB.Begin()
-	helper.ErrorHandle(err)
-	defer helper.CommitRollBack(tx)
+	helper.PanicIfError(err)
+	defer helper.CommitOrRollBack(tx)
 
 	categories := service.CategoryRepository.FindAll(ctx, tx)
 
-	return helper.CategoriesToResponses(categories)
-
+	return helper.ToCategoryResponses(categories)
 }
+
+// m MyStr

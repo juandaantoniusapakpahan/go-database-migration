@@ -16,65 +16,70 @@ func NewCategoryRepository() CategoryRepository {
 	return &CategoryRepositoryImpl{}
 }
 
-func (repository *CategoryRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, category domain.Category) domain.Category {
-	queryScript := "insert into category(name) values(?)"
-	resutl, err := tx.ExecContext(ctx, queryScript, category.Name)
+func (repository *CategoryRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, category domain.Category) (_ domain.Category) {
+	// TODO: Implement
+	sql := "INSERT INTO customer(name) values(?)"
+	result, err := tx.ExecContext(ctx, sql, category.Name)
+	helper.PanicIfError(err)
 
-	helper.ErrorHandle(err)
-
-	id, err := resutl.LastInsertId()
-	helper.ErrorHandle(err)
+	id, err := result.LastInsertId()
+	helper.PanicIfError(err)
 
 	category.Id = int(id)
 	return category
 }
 
-func (repository *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, category domain.Category) domain.Category {
-	queryScript := "update category set name = ? where id = ?"
-	_, err := tx.ExecContext(ctx, queryScript, category.Name, category.Id)
-	helper.ErrorHandle(err)
+func (respository *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, category domain.Category) (_ domain.Category) {
+	// TODO: Implement
+	sql := "UPDATE customer set name = ? where id = ?"
+	_, err := tx.QueryContext(ctx, sql, category.Name, category.Id)
+	helper.PanicIfError(err)
+
 	return category
 }
 
-func (repository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, id int) (domain.Category, error) {
-	queryScript := "SELECT id, name from category where id = ?"
-	row, err := tx.QueryContext(ctx, queryScript, id)
-	helper.ErrorHandle(err)
-
-	defer row.Close()
-
-	if row.Next() {
-		cty := domain.Category{}
-		err := row.Scan(&cty.Id, &cty.Name)
-		helper.ErrorHandle(err)
-		return cty, nil
-	} else {
-		return domain.Category{}, errors.New("category is not found!")
-	}
-}
-
 func (repository *CategoryRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, category domain.Category) {
-	queryScript := "DELETE FROM  category WHERE id = ?"
-	_, err := tx.ExecContext(ctx, queryScript, category.Id)
-	helper.ErrorHandle(err)
+	// TODO: Implement
+	sql := "DELETE FROM category WHERE id = ?"
+	_, err := tx.ExecContext(ctx, sql, category.Id)
+	helper.PanicIfError(err)
 }
 
-func (repository *CategoryRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) []domain.Category {
-	queryScript := "SELECT id, name FROM category"
-	rows, err := tx.QueryContext(ctx, queryScript)
-	helper.ErrorHandle(err)
+func (respository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql.Tx, categoryId int) (domain.Category, error) {
+	// TODO: Implement
+	sql := "SELECT id, name FROM category WHERE id = ?"
+	rows, err := tx.QueryContext(ctx, sql, categoryId)
+	helper.PanicIfError(err)
 	defer rows.Close()
 
-	categories := []domain.Category{}
+	category := domain.Category{}
 
+	if rows.Next() {
+		err := rows.Scan(&category.Id, &category.Name)
+		helper.PanicIfError((err))
+		return category, nil
+	} else {
+		return category, errors.New("category is not found")
+	}
+
+}
+
+func (respository *CategoryRepositoryImpl) FindAll(ctx context.Context, tx *sql.Tx) (_ []domain.Category) {
+	// TODO: Implement
+	sql := "SELECT id, name FROM category"
+	rows, err := tx.QueryContext(ctx, sql)
+	helper.PanicIfError(err)
+	defer rows.Close()
+
+	var categories []domain.Category
 	for rows.Next() {
 		category := domain.Category{}
-		err = rows.Scan(&category.Id, &category.Name)
+		err := rows.Scan(&category.Id, &category.Name)
+		helper.PanicIfError(err)
 		categories = append(categories, category)
 	}
 
 	return categories
 }
 
-// Delete(context context.Context, tx *sql.Tx, category domain.Category) error
-// FindAll(context context.Context, tx *sql.Tx) ([]domain.Category, error)
+// mt MyType

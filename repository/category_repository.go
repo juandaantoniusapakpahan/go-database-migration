@@ -9,8 +9,8 @@ import (
 
 type CategoryRepository interface {
 	Save(ctx context.Context, tx *sql.Tx, category domain.Category) domain.Category
-	Update(context context.Context, tx *sql.Tx, category domain.Category) domain.Category
-	FindById(context context.Context, tx *sql.Tx, id int) (domain.Category, error)
-	Delete(context context.Context, tx *sql.Tx, category domain.Category)
-	FindAll(context context.Context, tx *sql.Tx) []domain.Category
+	Update(ctx context.Context, tx *sql.Tx, category domain.Category) domain.Category
+	Delete(ctx context.Context, tx *sql.Tx, category domain.Category)
+	FindById(ctx context.Context, tx *sql.Tx, categoryId int) (domain.Category, error)
+	FindAll(ctx context.Context, tx *sql.Tx) []domain.Category
 }
