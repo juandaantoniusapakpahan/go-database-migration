@@ -162,3 +162,168 @@ func TestUpdateCategoryFailed(t *testing.T) {
 	assert.Equal(t, 400, int(responseBody["code"].(float64)))
 	assert.Equal(t, "BAD REQUEST", responseBody["status"])
 }
+
+func TestDeleteCategorySuccess(t *testing.T) {
+	DB := NewConnect()
+	router := setRouter(DB)
+	DeleteCategory(DB)
+
+	categoryPayload := domain.Category{
+		Name: "GGWP",
+	}
+
+	tx, _ := DB.Begin()
+	categoryRepository := repository.NewCategoryRepository()
+	category := categoryRepository.Save(context.Background(), tx, categoryPayload)
+	tx.Commit()
+
+	dataJson := strings.NewReader(`{"name":"LUXEX"}`)
+	request := httptest.NewRequest("DELETE", "http://localhost:8080/api/categories/"+strconv.Itoa(category.Id), dataJson)
+	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("Z-API-KEY", "SECRETKEY")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, request)
+
+	responseBody := M{}
+	body, _ := io.ReadAll(recorder.Result().Body)
+	json.Unmarshal(body, &responseBody)
+
+	assert.Equal(t, 200, recorder.Result().StatusCode)
+	assert.Equal(t, 200, int(responseBody["code"].(float64)))
+	assert.Equal(t, "OK", responseBody["status"])
+	//assert.Equal(t, category.Id, int(responseBody["data"].(map[string]interface{})["id"].(float64)))
+
+}
+
+func TestDeleteCategoryWithNotFoundID(t *testing.T) {
+	DB := NewConnect()
+	router := setRouter(DB)
+	DeleteCategory(DB)
+
+	categoryPayload := domain.Category{
+		Name: "GGWP",
+	}
+
+	tx, _ := DB.Begin()
+	categoryRepository := repository.NewCategoryRepository()
+	category := categoryRepository.Save(context.Background(), tx, categoryPayload)
+	tx.Commit()
+
+	dataJson := strings.NewReader(`{"name":"LUXEX"}`)
+	request := httptest.NewRequest("DELETE", "http://localhost:8080/api/categories/"+strconv.Itoa(category.Id+1), dataJson)
+	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("Z-API-KEY", "SECRETKEY")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, request)
+
+	responseBody := M{}
+	body, _ := io.ReadAll(recorder.Result().Body)
+	json.Unmarshal(body, &responseBody)
+
+	assert.Equal(t, 404, recorder.Result().StatusCode)
+	assert.Equal(t, 404, int(responseBody["code"].(float64)))
+	assert.Equal(t, "NOT FOUND", responseBody["status"])
+
+}
+
+func TestGetCategorySuccess(t *testing.T) {
+	DB := NewConnect()
+	router := setRouter(DB)
+	DeleteCategory(DB)
+
+	categoryPayload := domain.Category{
+		Name: "GGWP",
+	}
+
+	tx, _ := DB.Begin()
+	categoryRepository := repository.NewCategoryRepository()
+	category := categoryRepository.Save(context.Background(), tx, categoryPayload)
+	tx.Commit()
+
+	dataJson := strings.NewReader(`{"name":"LUXEX"}`)
+	request := httptest.NewRequest("GET", "http://localhost:8080/api/categories/"+strconv.Itoa(category.Id), dataJson)
+	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("Z-API-KEY", "SECRETKEY")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, request)
+
+	responseBody := M{}
+	body, _ := io.ReadAll(recorder.Result().Body)
+	json.Unmarshal(body, &responseBody)
+
+	assert.Equal(t, 200, recorder.Result().StatusCode)
+	assert.Equal(t, 200, int(responseBody["code"].(float64)))
+	assert.Equal(t, "OK", responseBody["status"])
+}
+
+func TestGetCategoryNotFound(t *testing.T) {
+	DB := NewConnect()
+	router := setRouter(DB)
+	DeleteCategory(DB)
+
+	categoryPayload := domain.Category{
+		Name: "GGWP",
+	}
+
+	tx, _ := DB.Begin()
+	categoryRepository := repository.NewCategoryRepository()
+	category := categoryRepository.Save(context.Background(), tx, categoryPayload)
+	tx.Commit()
+
+	dataJson := strings.NewReader(`{"name":"LUXEX"}`)
+	request := httptest.NewRequest("GET", "http://localhost:8080/api/categories/"+strconv.Itoa(category.Id+1), dataJson)
+	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("Z-API-KEY", "SECRETKEY")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, request)
+
+	responseBody := M{}
+	body, _ := io.ReadAll(recorder.Result().Body)
+	json.Unmarshal(body, &responseBody)
+
+	assert.Equal(t, 404, recorder.Result().StatusCode)
+	assert.Equal(t, 404, int(responseBody["code"].(float64)))
+	assert.Equal(t, "NOT FOUND", responseBody["status"])
+}
+
+func TestGetAllCategorySuccess(t *testing.T) {
+	DB := NewConnect()
+	router := setRouter(DB)
+	DeleteCategory(DB)
+
+	tx, _ := DB.Begin()
+	categoryRepository := repository.NewCategoryRepository()
+	category1 := categoryRepository.Save(context.Background(), tx, domain.Category{
+		Name: "Test1",
+	})
+	category2 := categoryRepository.Save(context.Background(), tx, domain.Category{
+		Name: "Test2",
+	})
+
+	tx.Commit()
+
+	dataJson := strings.NewReader(`{"name":"LUXEX"}`)
+	request := httptest.NewRequest("GET", "http://localhost:8080/api/categories", dataJson)
+	request.Header.Add("Content-Type", "application/json")
+	request.Header.Add("Z-API-KEY", "SECRETKEY")
+	recorder := httptest.NewRecorder()
+
+	router.ServeHTTP(recorder, request)
+
+	responseBody := M{}
+	body, _ := io.ReadAll(recorder.Result().Body)
+	json.Unmarshal(body, &responseBody)
+
+	categories1 := responseBody["data"].([]interface{})[0].(map[string]interface{})
+	categories2 := responseBody["data"].([]interface{})[1].(map[string]interface{})
+
+	assert.Equal(t, 200, recorder.Result().StatusCode)
+	assert.Equal(t, 200, int(responseBody["code"].(float64)))
+	assert.Equal(t, category1.Id, int(categories1["id"].(float64)))
+	assert.Equal(t, category2.Id, int(categories2["id"].(float64)))
+
+}
