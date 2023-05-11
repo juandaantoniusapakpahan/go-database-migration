@@ -7,33 +7,28 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/juandaantoniusapakpahan/go-restful-api/app"
 	"github.com/juandaantoniusapakpahan/go-restful-api/controller"
-	"github.com/juandaantoniusapakpahan/go-restful-api/database"
-	"github.com/juandaantoniusapakpahan/go-restful-api/exception"
 	"github.com/juandaantoniusapakpahan/go-restful-api/helper"
+	"github.com/juandaantoniusapakpahan/go-restful-api/middleware"
 	"github.com/juandaantoniusapakpahan/go-restful-api/repository"
 	"github.com/juandaantoniusapakpahan/go-restful-api/services"
-	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
-	db := database.Connect()
+	db := app.Connect()
 	validate := validator.New()
 	categoryRepository := repository.NewCategoryRepository()
 	categoryService := services.NewCategoryService(categoryRepository, db, validate)
 	categoryController := controller.NewCategoryController(categoryService)
 
-	router := httprouter.New()
-	router.GET("/api/categories", categoryController.FindAll)
-	router.GET("/api/categories/:categoryId", categoryController.FindById)
-	router.POST("/api/categories", categoryController.Create)
-	router.PUT("/api/categories/:categoryId", categoryController.Update)
-	router.DELETE("/api/categories/:categoryId", categoryController.Delete)
+	router := app.NewRouter(categoryController)
 
-	router.PanicHandler = exception.ErrorHalder
+	middleware := middleware.NewMiddleare(router)
+
 	server := http.Server{
 		Addr:    ":8080",
-		Handler: router,
+		Handler: middleware,
 	}
 
 	fmt.Println("Server started at: localhost:8080")

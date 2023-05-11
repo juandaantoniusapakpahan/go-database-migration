@@ -18,7 +18,7 @@ func NewCategoryRepository() CategoryRepository {
 
 func (repository *CategoryRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, category domain.Category) (_ domain.Category) {
 	// TODO: Implement
-	sql := "INSERT INTO customer(name) values(?)"
+	sql := "INSERT INTO category(name) values(?)"
 	result, err := tx.ExecContext(ctx, sql, category.Name)
 	helper.PanicIfError(err)
 
@@ -31,7 +31,7 @@ func (repository *CategoryRepositoryImpl) Save(ctx context.Context, tx *sql.Tx, 
 
 func (respository *CategoryRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, category domain.Category) (_ domain.Category) {
 	// TODO: Implement
-	sql := "UPDATE customer set name = ? where id = ?"
+	sql := "UPDATE category set name = ? where id = ?"
 	_, err := tx.QueryContext(ctx, sql, category.Name, category.Id)
 	helper.PanicIfError(err)
 
@@ -56,7 +56,7 @@ func (respository *CategoryRepositoryImpl) FindById(ctx context.Context, tx *sql
 
 	if rows.Next() {
 		err := rows.Scan(&category.Id, &category.Name)
-		helper.PanicIfError((err))
+		helper.PanicIfError(err)
 		return category, nil
 	} else {
 		return category, errors.New("category is not found")

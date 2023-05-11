@@ -51,7 +51,10 @@ func (service *CategoryServiceImpl) Update(ctx context.Context, request web.Cate
 	defer helper.CommitOrRollBack(tx)
 
 	category, err := service.CategoryRepository.FindById(ctx, tx, request.Id)
-	panic(exception.NewNotFoundError(err.Error()))
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+
+	}
 
 	category.Name = request.Name
 
@@ -66,7 +69,10 @@ func (service *CategoryServiceImpl) Delete(ctx context.Context, categoryId int) 
 	defer helper.CommitOrRollBack(tx)
 
 	category, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
-	panic(exception.NewNotFoundError(err.Error()))
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+
+	}
 
 	service.CategoryRepository.Delete(ctx, tx, category)
 }
@@ -78,7 +84,10 @@ func (service *CategoryServiceImpl) FindById(ctx context.Context, categoryId int
 	defer helper.CommitOrRollBack(tx)
 
 	category, err := service.CategoryRepository.FindById(ctx, tx, categoryId)
-	panic(exception.NewNotFoundError(err.Error()))
+	if err != nil {
+		panic(exception.NewNotFoundError(err.Error()))
+
+	}
 
 	return helper.ToCategoryResponse(category)
 }
